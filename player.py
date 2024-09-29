@@ -43,7 +43,7 @@ class Player:
 
 
 if __name__ == "__main__":
-    pInformation = input().split()
+    pInformation = input("Enter the following information: <Tracker IPv4> <Tracker port number> <Peer-Tracker port number> <Peer-Peer port number>: \n").split()
     player = Player(pInformation[0], int(pInformation[1]), int(pInformation[2]), int(pInformation[3]))
     while True:
         name = player.name if player.name != None else ""
