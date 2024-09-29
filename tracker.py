@@ -1,16 +1,17 @@
 import socket
+import cfunctions
 
 class Tracker:
-    def __init__(self, host, port):
-        self.host = host
+    def __init__(self, IPv4, port):
+        self.IPv4 = IPv4
         self.port = port
         self.players = {}
         self.games = {}
 
     def start(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.bind((self.host, self.port))
-        print(f"Tracker listening on {self.host}:{self.port}")
+        server.bind((self.IPv4, self.port))
+        print(f"Tracker listening on {self.IPv4}:{self.port}")
         
         while True:
             data, addr = server.recvfrom(1024)
@@ -26,6 +27,7 @@ class Tracker:
         elif command[0] == 'query':
             if command[1] == 'players':
                 return self.query_players()
+            
             elif command[1] == 'games':
                 return self.query_games()
         
@@ -68,15 +70,8 @@ class Tracker:
 
 
 if __name__ == "__main__":
-    portNumber = None
-    while portNumber == None:
-        try:
-            portNumber = int(input("Pass the port number of the tracker (must be in the range 35,000-35,499): "))
-            if not (34999 < portNumber < 35500):
-                print("The port number is out of range\n")
-                portNumber = None
-        except:
-            print("please pass an integer\n")
+    IPv4 = input("Enter the IPv4: ")
+    portNumber = cfunctions.validPortNumber()
     
-    tracker = Tracker('localhost', portNumber)
+    tracker = Tracker(IPv4, portNumber)
     tracker.start()
