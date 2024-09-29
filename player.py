@@ -16,13 +16,14 @@ class Player:
         self.name = name
 
     def send_to_tracker(self, message):
-        self.pt_socket.sendto(message.encode('utf-8'), ('localhost', self.tracker_port)) # we are group 68, hence we are assigned the numbers in the  range [35000, 35499]
+        self.pt_socket.sendto(message.encode('utf-8'), (self.IPv4, self.tracker_port)) # we are group 68, hence we are assigned the numbers in the  range [35000, 35499]
         response, _ = self.pt_socket.recvfrom(1024)
         print(response.decode('utf-8'))
+        return response.decode('utf-8')
 
     def register(self, name, IPv4, tracker_port, player_port):
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
-        self.send_to_tracker(message)
+        return self.send_to_tracker(message) == "SUCCESS: Player registered"
 
     def query_games(self):
         message = "query games"
@@ -34,7 +35,7 @@ class Player:
 
     def deregister(self, name):
         message = f"de-register {name}"
-        self.send_to_tracker(message)
+        return self.send_to_tracker(message) == "SUCCESS: Player deregistered"
 
     def query_players(self):
         message = "query players"
@@ -45,10 +46,11 @@ if __name__ == "__main__":
     pInformation = input().split()
     player = Player(pInformation[0], int(pInformation[1]), int(pInformation[2]), int(pInformation[3]))
     while True:
-        command = input(f"> ")
-        
-        if command.split()[0] == "register":
-            splittedCmd = command.split()
+        name = player.name if player.name != None else ""
+        command = input(f"{name}> ")
+        splittedCmd = command.split()
+
+        if splittedCmd[0] == "register":
             if len(splittedCmd) != 5:
                 print("please use the command in the following manner: register <player> <IPv4> <t-port> <p-port>")
                 continue
@@ -75,12 +77,9 @@ if __name__ == "__main__":
             except:
                 print("p-port should be an integer")
                 continue
-            if (player.name == None and splittedCmd[2] == player.IPv4 and splittedCmd[3] == player.pt_port):
-                player.setName(splittedCmd[1])
-                player.register(splittedCmd[1], splittedCmd[2], t_port, p_port)
-            else:
-                player.register(splittedCmd[1], splittedCmd[2], t_port, p_port)
 
+            if (player.register(splittedCmd[1], splittedCmd[2], t_port, p_port)):
+                player.setName(splittedCmd[1])
             
         elif command == "query players":
             player.query_players()        
@@ -90,7 +89,8 @@ if __name__ == "__main__":
         #elif command[0] == "start game":
         #    player.start_game(command[1], int(command[2]), int(command[3]))
 
-        elif command[0] == "de-register":
-            player.deregister(command[1])
+        elif splittedCmd[0] == "de-register":
+            if player.deregister(splittedCmd[1]) == True and player.name == splittedCmd[1]:
+                break
         else:
             print("Unknown command")

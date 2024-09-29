@@ -43,7 +43,7 @@ class Tracker:
     def register_player(self, params):
         player_name, ipv4, t_port, p_port = params
         if player_name not in self.players:
-            self.players[player_name] = (ipv4, t_port, p_port)
+            self.players[player_name] = [ipv4, t_port, p_port]
             return "SUCCESS: Player registered"
         else:
             return "FAILURE: Player already registered"
@@ -57,13 +57,18 @@ class Tracker:
         return response
 
     def query_games(self):
-        pass
+        if len(self.games) == 0:
+            return "No games running"
+        response = ""
+        for game, info in self.games.info():
+            response += f"Game: {game} Dealer: {info[0]} Players: {info[1:]}"
 
     def start_game(self, params):
         pass
 
     def deregister_player(self, player_name):
         if player_name in self.players:
+            del self.players[player_name]
             return "SUCCESS: Player deregistered"
         else:
             return "FAILURE: Player not registered"
