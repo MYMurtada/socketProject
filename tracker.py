@@ -50,13 +50,11 @@ class Tracker:
 
     def query_players(self):
         try:
-            if not self.players:
-                return "No players registered"
-            length =0;
+            length = 0
             for i in self.players.items():  
                 length+=1
             response = str(length)
-            response+=" - Registered players:\n"
+            response+="\nRegistered players:\n"
             for player, info in self.players.items():
                 # players += (f"{player} at {info[0]}",)
                 response += f"{player} at {info[0]}:{info[1]}|{info[2]}\n"
@@ -65,13 +63,12 @@ class Tracker:
         except:
             return "cannot be done"
 
-    def query_games(self):
-        if len(self.games) == 0:
-            return "No games running"
-        response = ""
-        for game, info in self.games.info():
+    def query_games(self): 
+        response = f"{len(self.games)}\n"
+        for game, info in self.games.items():
             response += f"Game: {game} Dealer: {info[0]} Players: {info[1:]}"
-
+        return response
+    
     def start_game(self, params):
         pass
 
