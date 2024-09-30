@@ -19,7 +19,7 @@ class Tracker:
             response, systemResponse = self.handle_request(message, addr) # sends the message to a handling method
             server.sendto(response.encode('utf-8'), addr) # reply to the sender
             if systemResponse:
-                print(systemResponse)
+                print(systemResponse) # if the system sent a query to a player, the 
 
     def handle_request(self, message, addr):
         command = message.split()

@@ -15,7 +15,7 @@ def validIPv4(IPv4): # checks if the address follows the IPv4 format
     
     return True
 
-def validPortNumber():
+def validPortNumber(): # A function that repeatedly asks for a port number until the number given is correct
     portNumber = None
     while portNumber == None:
         try:
