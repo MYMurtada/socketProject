@@ -57,9 +57,7 @@ class Tracker:
             return "FAILURE: Player already registered", None
 
     def query_players(self):
-        length = 0
-        for i in self.players.items():  
-            length+=1
+        length = len(self.players)
         response = str(length)
         response+="\nRegistered players:\n"
         for player, info in self.players.items():
@@ -70,6 +68,7 @@ class Tracker:
 
     def query_games(self): 
         response = f"{len(self.games)}\n"
+        response+="\Current games:\n"
         for game, info in self.games.items():
             response += f"Game: {game} Dealer: {info[0]} Players: {info[1:]}"
         return response, "Query games response is sent to the player"
