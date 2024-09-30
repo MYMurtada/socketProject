@@ -18,27 +18,31 @@ class Player:
     def send_to_tracker(self, message):
         self.pt_socket.sendto(message.encode('utf-8'), (self.IPv4, self.tracker_port)) # we are group 68, hence we are assigned the numbers in the  range [35000, 35499]
         response, _ = self.pt_socket.recvfrom(1024)
-        print(response.decode('utf-8'))
+        print(f"Tracker response:\n{response.decode('utf-8')}")
         return response.decode('utf-8')
 
     def register(self, name, IPv4, tracker_port, player_port):
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
+        print("Register request is sent to the tracker")
         return self.send_to_tracker(message) == "SUCCESS: Player registered"
 
     def query_games(self):
         message = "query games"
+        print("Query games request is sent to the tracker")
         self.send_to_tracker(message)
 
-    def start_game(self, player, n, holes):
-        message = f"start {player} {n} {holes}"
-        self.send_to_tracker(message)
+    # def start_game(self, player, n, holes):
+    #     message = f"start {player} {n} {holes}"
+    #     self.send_to_tracker(message)
 
     def deregister(self, name):
         message = f"de-register {name}"
+        print(f"De-register request for the player {name} is sent to the tracker")
         return self.send_to_tracker(message) == "SUCCESS: Player deregistered"
 
     def query_players(self):
         message = "query players"
+        print(f"Query players request is sent to the tracker")
         self.send_to_tracker(message)
 
 
