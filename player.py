@@ -2,7 +2,7 @@ import socket
 import cfunctions
 
 class Player:
-    def __init__(self, IPv4, tracker_port, pt_port, pp_port):
+    def __init__(self, IPv4, tracker_port, pt_port, pp_port): # stores the information need as described in the specification
         self.name = None
         self.IPv4 = IPv4
         self.tracker_port = tracker_port
@@ -45,7 +45,8 @@ class Player:
 if __name__ == "__main__":
     pInformation = input("Enter the following information: <Tracker IPv4> <Tracker port number> <Peer-Tracker port number> <Peer-Peer port number>: \n").split()
     player = Player(pInformation[0], int(pInformation[1]), int(pInformation[2]), int(pInformation[3]))
-    while True:
+
+    while True: # breaks when the player de-registers 
         name = player.name if player.name != None else ""
         command = input(f"{name}> ")
         splittedCmd = command.split()

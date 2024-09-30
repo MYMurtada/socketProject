@@ -3,21 +3,21 @@ import cfunctions
 
 class Tracker:
     def __init__(self, IPv4, port):
-        self.IPv4 = IPv4
-        self.port = port
-        self.players = {}
-        self.games = {}
+        self.IPv4 = IPv4 # saves the IPv4 of the tracker
+        self.port = port # saves the port of the tracker
+        self.players = {} # a dictionary containing player names as keys, and their information as values
+        self.games = {} # a dictionary containing all the game IDs as keys, player information as the values (dealer is the first in the list)
 
     def start(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server.bind((self.IPv4, self.port))
+        server.bind((self.IPv4, self.port)) # binding the socket to the given IPv4 and port
         print(f"Tracker listening on {self.IPv4}:{self.port}")
         
-        while True:
+        while True: # constantly listening to messages from the designated port
             data, addr = server.recvfrom(1024)
-            message = data.decode('utf-8')
-            response = self.handle_request(message)
-            server.sendto(response.encode('utf-8'), addr)
+            message = data.decode('utf-8') # decoding data to the commonly used UTF-8 format
+            response = self.handle_request(message) # sends the message to a handling method
+            server.sendto(response.encode('utf-8'), addr) # reply to the sender
 
     def handle_request(self, message):
         command = message.split()
@@ -31,9 +31,9 @@ class Tracker:
             elif command[1] == 'games':
                 return self.query_games()
         
-        elif command[0] == 'start':
-            return self.start_game(command[1:])
-    
+        # elif command[0] == 'start':                   to be implemented later
+        #   return self.start_game(command[1:])         to be implemented later
+            
         elif command[0] == 'de-register':
             return self.deregister_player(command[1])
         
@@ -42,7 +42,7 @@ class Tracker:
 
     def register_player(self, params):
         player_name, ipv4, t_port, p_port = params
-        if player_name not in self.players:
+        if player_name not in self.players: # checks if there is a duplicate name
             self.players[player_name] = [ipv4, t_port, p_port]
             return "SUCCESS: Player registered"
         else:
@@ -56,9 +56,7 @@ class Tracker:
             response = str(length)
             response+="\nRegistered players:\n"
             for player, info in self.players.items():
-                # players += (f"{player} at {info[0]}",)
                 response += f"{player} at {info[0]}:{info[1]}|{info[2]}\n"
-            # response += f"{players}"
             return response
         except:
             return "cannot be done"
@@ -83,6 +81,5 @@ class Tracker:
 if __name__ == "__main__":
     IPv4 = input("Enter the IPv4: ")
     portNumber = cfunctions.validPortNumber()
-    
     tracker = Tracker(IPv4, portNumber)
     tracker.start()

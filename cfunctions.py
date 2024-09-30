@@ -1,4 +1,6 @@
-def validIPv4(IPv4):
+# This is a file containing complementary functions
+
+def validIPv4(IPv4): # checks if the address follows the IPv4 format
     IPv4 = IPv4.split(".")
     if (len(IPv4) == 4):
         for num in IPv4:
