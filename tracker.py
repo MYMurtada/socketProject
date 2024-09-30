@@ -49,12 +49,21 @@ class Tracker:
             return "FAILURE: Player already registered"
 
     def query_players(self):
-        if not self.players:
-            return "No players registered"
-        response = "Registered players:\n"
-        for player, info in self.players.items():
-            response += f"{player} at {info[0]}:{info[1]}|{info[2]}\n"
-        return response
+        try:
+            if not self.players:
+                return "No players registered"
+            length =0;
+            for i in self.players.items():  
+                length+=1
+            response = str(length)
+            response+=" - Registered players:\n"
+            for player, info in self.players.items():
+                # players += (f"{player} at {info[0]}",)
+                response += f"{player} at {info[0]}:{info[1]}|{info[2]}\n"
+            # response += f"{players}"
+            return response
+        except:
+            return "cannot be done"
 
     def query_games(self):
         if len(self.games) == 0:
