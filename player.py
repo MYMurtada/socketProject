@@ -48,6 +48,7 @@ class Player:
         if not self.tracker_thread.is_alive():
             self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
             self.tracker_thread.start()
+            
         
         return response.decode('utf-8')
 
@@ -133,8 +134,19 @@ class Player:
         elif command == "query games":
             self.query_games()
 
-        elif command[0] == "start game":
-            player.start_game(command[1], int(command[2]), int(command[3]))
+        elif splittedCmd[0:2] == ["start", "game"]:
+            if len(splittedCmd) != 5:
+                print("please use the command in the following manner: start game <player> <n> <holes>")
+                return
+            try:
+                player_name = splittedCmd[2]
+                n = int(splittedCmd[3])
+                holes = int(splittedCmd[4])
+            except ValueError:
+                print("Invalid command parameters")
+                return
+            self.start_game(player_name, n, holes)
+
 
         elif splittedCmd[0] == "de-register":
             if self.deregister(splittedCmd[1]) and self.name == splittedCmd[1]:
