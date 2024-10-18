@@ -36,9 +36,10 @@ class Tracker:
                 print("A query games request received from the address:", addr)
                 return self.query_games()
         
-        # elif command[0] == 'start':                   to be implemented
-        #   return self.start_game(command[1:])         to be implemented
-            
+        elif command[0]+command[1] == 'startgame':
+            print(f"A start game request from player {command[1]} to start with {command[2]} players received from the address:", addr)
+            return self.start_game(command[1], int(command[2])), f"List of players has been sent to {command[1]}"      
+        
         elif command[0] == 'de-register':
             print(f"A de-register request to de-register {command[1]} received from the address:", addr)
             return self.deregister_player(command[1])
@@ -73,8 +74,16 @@ class Tracker:
             response += f"Game: {game} Dealer: {info[0]} Players: {info[1:]}"
         return response, "Query games response is sent to the player"
     
-    def start_game(self, params):
-        pass
+    def start_game(self, player, n):
+        i = 0
+        list_of_players = f"{player} {self.players[player][0]} {self.players[player][2]}\n"
+        for p in self.players:
+            if p != player:
+                list_of_players += f"{p} {self.players[p][0]} {self.players[p][2]}\n"
+                i += 1
+            if i == n:
+                break
+        return list_of_players
 
     def deregister_player(self, player_name):
         if player_name in self.players:
