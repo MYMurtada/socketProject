@@ -3,7 +3,6 @@ import threading
 import sys
 import cfunctions
 
-stop_event = threading.Event()
 
 class Player:
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
@@ -15,32 +14,47 @@ class Player:
         self.pt_port = pt_port
         self.pt_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.pt_socket.bind((IPv4, pt_port))
+        self.pt_socket.setblocking(False)
         
         self.pp_port = pp_port
         self.pp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.pp_socket.bind((IPv4, pp_port))
 
-        self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
-        self.tracker_response = None
-        self.peer_thread = threading.Thread(target=self.listen_to_peers)
-        self.peer_response = None
-        self.main_thread = threading.Thread(target=self.main_page)
+        # Define stop_event for thread control
+        self.stop_event = threading.Event()
 
+        self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
+        self.peer_thread = threading.Thread(target=self.listen_to_peers)
+        self.main_thread = threading.Thread(target=self.main_page)
 
     def setName(self, name):
         self.name = name
 
     def send_to_tracker(self, message):
-        """we are group 68, hence we are assigned the numbers in the  range [35000, 35499]"""
-        self.pt_socket.sendto(message.encode('utf-8'), (self.IPv4, self.tracker_port)) 
-        # response, _ = self.pt_socket.recvfrom(1024)
-        # print(f"Tracker response:\n{response.decode('utf-8')}")
-        # return response.decode('utf-8')
+        """we are group 68, hence we are assigned the numbers in the range [35000, 35499]"""
+        self.pt_socket.sendto(message.encode('utf-8'), (self.IPv4, self.tracker_port))
+        
+        # Signal the tracker thread to stop gracefully
+        self.stop_event.set()
+        self.pt_socket.setblocking(True)
+        response, _ = self.pt_socket.recvfrom(1024)
+        print(f"Tracker response:\n{response.decode('utf-8')}")
+        self.pt_socket.setblocking(False)
+
+        # Clear stop_event to allow restarting the thread if needed
+        self.stop_event.clear()
+        
+        # Restart the thread if it's not alive
+        if not self.tracker_thread.is_alive():
+            self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
+            self.tracker_thread.start()
+        
+        return response.decode('utf-8')
 
     def register(self, name, IPv4, tracker_port, player_port):
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
         print("Register request is sent to the tracker")
-        self.send_to_tracker(message)
+        return self.send_to_tracker(message) == "SUCCESS: Player registered"
 
     def query_games(self):
         message = "query games"
@@ -54,7 +68,7 @@ class Player:
     def deregister(self, name):
         message = f"de-register {name}"
         print(f"De-register request for the player {name} is sent to the tracker")
-        self.send_to_tracker(message)
+        return self.send_to_tracker(message) == "SUCCESS: Player deregistered"
 
     def query_players(self):
         message = "query players"
@@ -63,31 +77,31 @@ class Player:
 
     def listen_to_tracker(self):
         """Listen for messages from the tracker."""
-        while True:
-            self.tracker_response, addr = self.pt_socket.recvfrom(1024)
-            self.tracker_response = self.tracker_response.decode('utf-8')
-            # If a player gets invited to a match, the event should be set
-            if self.tracker_response == "game":
+        i = 0
+        while not self.stop_event.is_set():  # Check if the stop_event is set to stop the thread
+            try:
+                i += 1
+                data, addr = self.pt_socket.recvfrom(1024)
+                message = data.decode('utf-8')
+                if message == "game":
+                    pass
+                print(f"Tracker response:\n{message}")
+            except BlockingIOError:
                 pass
-            print("G")
-            print(f"Tracker response:\n{self.tracker_response}")
 
     def listen_to_peers(self):
         """Listen for messages from other peers."""
         while True:
             data, addr = self.pp_socket.recvfrom(1024)
             message = data.decode('utf-8')
-            if message == "stop":
-                self.main_thread._stop()
-            elif message == "run":
-                self.main_thread.start()
+            print(message)
 
     def main_page(self):
         while True:
             name = self.name if self.name != None else ""
-            print(self.tracker_response)
             command = input(f"{name}> ")
             splittedCmd = command.split()
+
             if splittedCmd[0] == "register":
                 if len(splittedCmd) != 5:
                     print("please use the command in the following manner: register <player> <IPv4> <t-port> <p-port>")
@@ -116,9 +130,8 @@ class Player:
                     print("p-port should be an integer")
                     continue
 
-                self.register(splittedCmd[1], splittedCmd[2], t_port, p_port)
-                print(self.tracker_response)
-                if (self.tracker_response == "SUCCESS: Player registered"):
+                
+                if self.register(splittedCmd[1], splittedCmd[2], t_port, p_port):
                     self.setName(splittedCmd[1])
                 
             elif command == "query players":
@@ -131,20 +144,19 @@ class Player:
                 player.start_game(command[1], int(command[2]), int(command[3]))
 
             elif splittedCmd[0] == "de-register":
-                self.deregister(splittedCmd[1])
-                if self.tracker_response == "SUCCESS: Player deregistered" and self.name == splittedCmd[1]:
+                if self.deregister(splittedCmd[1]) and self.name == splittedCmd[1]:
                     sys.exit()
 
             else:
                 print("Unknown command")
-    
-    def start(self):    
+
+    def main(self):    
         self.tracker_thread.start()  # Start listening to the tracker
         self.peer_thread.start()  # Start listening to peers
-        self.main_thread.start() # Start the main menu
+        self.main_thread.start()  # Start the main menu
 
 
 if __name__ == "__main__":
     pInformation = input("Enter the following information: <Tracker IPv4> <Tracker port number> <Peer-Tracker port number> <Peer-Peer port number>: \n").split()
     player = Player(pInformation[0], int(pInformation[1]), int(pInformation[2]), int(pInformation[3]))
-    player.start()
+    player.main()
