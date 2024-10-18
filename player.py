@@ -3,11 +3,11 @@ import threading
 import sys
 import cfunctions
 
-
 class Player:
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
         """stores the information need as described in the specification"""
         self.name = None
+        self.in_game = False
         self.IPv4 = IPv4
         self.tracker_port = tracker_port
         
@@ -25,7 +25,7 @@ class Player:
 
         self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
         self.peer_thread = threading.Thread(target=self.listen_to_peers)
-        self.main_thread = threading.Thread(target=self.main_page)
+        self.main_thread = threading.Thread(target=self.main)
 
     def setName(self, name):
         self.name = name
@@ -77,10 +77,8 @@ class Player:
 
     def listen_to_tracker(self):
         """Listen for messages from the tracker."""
-        i = 0
         while not self.stop_event.is_set():  # Check if the stop_event is set to stop the thread
             try:
-                i += 1
                 data, addr = self.pt_socket.recvfrom(1024)
                 message = data.decode('utf-8')
                 if message == "game":
@@ -96,61 +94,69 @@ class Player:
             message = data.decode('utf-8')
             print(message)
 
-    def main_page(self):
+    def main_page(self, command):
+        splittedCmd = command.split()
+        if splittedCmd[0] == "register":
+            if len(splittedCmd) != 5:
+                print("please use the command in the following manner: register <player> <IPv4> <t-port> <p-port>")
+                return
+
+            name = splittedCmd[1]
+            if not (name.isalpha() and len(name) <= 15):
+                print("Invalid name, name should consist of only alphabetic characters and its length is at most 15 characters")
+                return
+
+            if not (cfunctions.validIPv4(splittedCmd[2])):
+                print("Invalid IPv4 address")
+                return
+
+            t_port = splittedCmd[3]
+            try:
+                t_port = int(t_port)
+            except:
+                print("t-port should be an integer")
+                return
+
+            p_port = splittedCmd[4]
+            try:
+                p_port = int(p_port)
+            except:
+                print("p-port should be an integer")
+                return
+
+            if self.register(splittedCmd[1], splittedCmd[2], t_port, p_port):
+                self.setName(splittedCmd[1])
+            
+        elif command == "query players":
+            self.query_players()     
+
+        elif command == "query games":
+            self.query_games()
+
+        elif command[0] == "start game":
+            player.start_game(command[1], int(command[2]), int(command[3]))
+
+        elif splittedCmd[0] == "de-register":
+            if self.deregister(splittedCmd[1]) and self.name == splittedCmd[1]:
+                sys.exit()
+
+        else:
+            print("Unknown command")
+
+    def game(self, command):
+        pass # Here we will complete the game functionalities
+
+    def main(self):
         while True:
             name = self.name if self.name != None else ""
             command = input(f"{name}> ")
-            splittedCmd = command.split()
 
-            if splittedCmd[0] == "register":
-                if len(splittedCmd) != 5:
-                    print("please use the command in the following manner: register <player> <IPv4> <t-port> <p-port>")
-                    continue
-
-                name = splittedCmd[1]
-                if not (name.isalpha() and len(name) <= 15):
-                    print("Invalid name, name should consist of only alphabetic characters and its length is at most 15 characters")
-                    continue
-
-                if not (cfunctions.validIPv4(splittedCmd[2])):
-                    print("Invalid IPv4 address")
-                    continue
-
-                t_port = splittedCmd[3]
-                try:
-                    t_port = int(t_port)
-                except:
-                    print("t-port should be an integer")
-                    continue
-
-                p_port = splittedCmd[4]
-                try:
-                    p_port = int(p_port)
-                except:
-                    print("p-port should be an integer")
-                    continue
-
-                
-                if self.register(splittedCmd[1], splittedCmd[2], t_port, p_port):
-                    self.setName(splittedCmd[1])
-                
-            elif command == "query players":
-                self.query_players()     
-
-            elif command == "query games":
-                self.query_games()
-
-            elif command[0] == "start game":
-                player.start_game(command[1], int(command[2]), int(command[3]))
-
-            elif splittedCmd[0] == "de-register":
-                if self.deregister(splittedCmd[1]) and self.name == splittedCmd[1]:
-                    sys.exit()
-
+            if self.in_game:
+                self.game(command)
             else:
-                print("Unknown command")
-
-    def main(self):    
+                self.main_page(command)
+    
+    def start(self):    
         self.tracker_thread.start()  # Start listening to the tracker
         self.peer_thread.start()  # Start listening to peers
         self.main_thread.start()  # Start the main menu
@@ -159,4 +165,4 @@ class Player:
 if __name__ == "__main__":
     pInformation = input("Enter the following information: <Tracker IPv4> <Tracker port number> <Peer-Tracker port number> <Peer-Peer port number>: \n").split()
     player = Player(pInformation[0], int(pInformation[1]), int(pInformation[2]), int(pInformation[3]))
-    player.main()
+    player.start()
