@@ -2,6 +2,8 @@ import socket
 import threading
 import sys
 import cfunctions
+import random
+import time
 
 class Player:
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
@@ -27,6 +29,12 @@ class Player:
         self.peer_thread = threading.Thread(target=self.listen_to_peers)
         self.main_thread = threading.Thread(target=self.main)
 
+        self.hand = [None] * 6
+        self.peer_sockets = {}
+        self.game_id = None
+        self.holes = 0
+        self.current_hole = 0
+
     def setName(self, name):
         self.name = name
 
@@ -37,7 +45,7 @@ class Player:
         # Signal the tracker thread to stop gracefully
         self.stop_event.set()
         self.pt_socket.setblocking(True)
-        response, _ = self.pt_socket.recvfrom(1024)
+        response = self.pt_socket.recvfrom(1024)[0]
         print(f"Tracker response:\n{response.decode('utf-8')}")
         self.pt_socket.setblocking(False)
 
@@ -49,7 +57,6 @@ class Player:
             self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
             self.tracker_thread.start()
             
-        
         return response.decode('utf-8')
 
     def register(self, name, IPv4, tracker_port, player_port):
@@ -63,8 +70,25 @@ class Player:
         self.send_to_tracker(message)
 
     def start_game(self, player, n, holes):
-        message = f"start {player} {n} {holes}"
-        self.send_to_tracker(message)
+        message = f"start game {player} {n}"
+        response = self.send_to_tracker(message)
+        if response:
+            players_list = response.split('\n')
+            print("Game starting with players:")
+            for player_info in players_list:
+                player_details = player_info.split()    
+                if player_details[0] == player:
+                    peer_ip = player_details[1]
+                    peer_port = int(player_details[2])
+                    self.send_to_peer(peer_ip, peer_port, f"Game started with players: {response}")
+                    break
+        # if "SUCCESS" in response:
+        #     self.in_game = True
+        #     self.game_id = response.split()[1]
+        #     self.holes = holes
+        #     print(f"Game {self.game_id} started with {n} players for {holes} holes.")
+        #     self.set_up_game(response)
+        #     self.play_game()
 
     def deregister(self, name):
         message = f"de-register {name}"
@@ -94,6 +118,75 @@ class Player:
             data, addr = self.pp_socket.recvfrom(1024)
             message = data.decode('utf-8')
             print(message)
+
+    def send_to_peer(self, ip, port, message):
+        """Send a message to a peer via the peer-to-peer socket."""
+        self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
+
+    def set_up_game(self, game_info):
+        """Sets up the game with the given player information."""
+        players_info = game_info.split('\n')[1:]
+        self.peer_sockets = {}
+        for player_info in players_info:
+            player_name, ip, port = player_info.split()
+            if player_name != self.name:
+                self.peer_sockets[player_name] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.peer_sockets[player_name].connect((ip, int(port)))
+        self.deal_cards()
+
+    def deal_cards(self):
+        """Deals 6 cards to the player."""
+        deck = list(range(1, 53))  # 1 to 52 represent cards
+        random.shuffle(deck)
+        self.hand = deck[:6]
+        self.turn_two_cards_face_up()
+        self.print_hand()
+
+    def turn_two_cards_face_up(self):
+        """Turns two random cards face-up."""
+        face_up_indices = random.sample(range(6), 2)
+        for i in face_up_indices:
+            self.hand[i] = abs(self.hand[i])  # Ensure positive value represents face-up
+
+    def print_hand(self):
+        """Prints the player's hand."""
+        hand_display = []
+        for card in self.hand:
+            if card is None:
+                hand_display.append('***')
+            else:
+                hand_display.append(str(card) if card > 0 else '***')
+        print('Your hand:', ' '.join(hand_display))
+
+    def play_turn(self):
+        """Plays the player's turn."""
+        while self.in_game:
+            card = random.randint(1, 52)  # Simulate drawing a card
+            print(f"Drawn card: {card}")
+            # Example: replacing a card (more game logic would be implemented here)
+            replace_index = random.randint(0, 5)
+            self.hand[replace_index] = card
+            self.print_hand()
+            break  # For now, one iteration per turn
+
+    def play_game(self):
+        """Plays the entire game for the specified number of holes."""
+        for hole in range(self.holes):
+            self.current_hole = hole + 1
+            print(f"Starting hole {self.current_hole}")
+            self.play_turn()
+            time.sleep(1)  # Simulate time between turns
+        self.end_game()
+
+    def end_game(self):
+        """Ends the game and notifies the tracker."""
+        message = f"end {self.game_id} {self.name}"
+        print(f"Ending game {self.game_id}")
+        self.send_to_tracker(message)
+        self.in_game = False
+        self.game_id = None
+        self.holes = 0
+        self.current_hole = 0
 
     def main_page(self, command):
         splittedCmd = command.split()
@@ -134,7 +227,7 @@ class Player:
         elif command == "query games":
             self.query_games()
 
-        elif splittedCmd[0:2] == ["start", "game"]:
+        elif splittedCmd[0]+splittedCmd[1] == "startgame":
             if len(splittedCmd) != 5:
                 print("please use the command in the following manner: start game <player> <n> <holes>")
                 return
@@ -156,7 +249,13 @@ class Player:
             print("Unknown command")
 
     def game(self, command):
-        pass # Here we will complete the game functionalities
+        splittedCmd = command.split()
+        if splittedCmd[0] == "play turn":
+            self.play_turn()
+        elif splittedCmd[0] == "end game":
+            self.end_game()
+        else:
+            print("Unknown game command")
 
     def main(self):
         while True:
@@ -172,7 +271,6 @@ class Player:
         self.tracker_thread.start()  # Start listening to the tracker
         self.peer_thread.start()  # Start listening to peers
         self.main_thread.start()  # Start the main menu
-
 
 if __name__ == "__main__":
     pInformation = input("Enter the following information: <Tracker IPv4> <Tracker port number> <Peer-Tracker port number> <Peer-Peer port number>: \n").split()
