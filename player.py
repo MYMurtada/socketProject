@@ -77,6 +77,7 @@ class Player:
         if response:
             players_list = response.split('\n')
             print("Game starting with players:")
+
             for player_info in players_list:
                 player_details = player_info.split()    
                 if player_details[0] == player:
@@ -127,16 +128,35 @@ class Player:
         pass # To be implemented
 
     def handle_peers(self, message):
+        """are you dealer:
+            yes:
+                استقبل من اللاعبين الحالة للعبة
+            ارسل الحالة الجديدة لجميع اللاعبين
+            No:
+                استقبل من الديلر
+                حدث عندك الحالة
+        """
         splittedMessage = message.split()                
-        match splittedMessage[0]:
-            case "invite":
-                print("You got an invite to join a game by:", splittedMessage[1])
-                self.in_game.set()
-            case "end": # end game
-                self.in_game.clear()
-            case "state": # game state
-                pass # Here we need to handle the state
 
+        if self.state == "Dealer":
+            pass
+        elif self.state == "Player":
+            match splittedMessage[0]:
+                case "end": # end game
+                    self.in_game.clear()
+                case "state": # message = "state, deck ومعلومات اللاعبين"
+                    pass # Here we need to handle the state
+                case "turn": 
+                    pass # Message containing what to do
+        else: # None
+            match splittedMessage[0]:
+                case "invite":
+                    print("You got an invite to join a game by:", splittedMessage[1])
+                    self.in_game.set()
+                
+
+
+    
     def send_to_peer(self, ip, port, message):
         """Send a message to a peer via the peer-to-peer socket."""
         self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
@@ -279,7 +299,7 @@ class Player:
         while True:
             name = self.name if self.name != None else ""
             command = input(f"{name}> ")
-            if self.in_game: # Change that to an event
+            if self.in_game.is_set(): # Change that to an event
                 self.handle_game_input(command)
             else:
                 self.handle_menu_input(command)
