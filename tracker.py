@@ -19,7 +19,7 @@ class Tracker:
             response, systemResponse = self.handle_request(message, addr) # sends the message to a handling method
             server.sendto(response.encode('utf-8'), addr) # reply to the sender
             if systemResponse:
-                print(systemResponse) # if the system sent a query to a player, the 
+                print(systemResponse) # if the system sent a query to a player, the system prints the response
 
     def handle_request(self, message, addr):
         command = message.split()
@@ -38,7 +38,11 @@ class Tracker:
         
         elif command[0]+command[1] == 'startgame':
             print(f"A start game request from player {command[1]} to start with {command[2]} players received from the address:", addr)
-            return self.start_game(command[1], int(command[2])), f"List of players has been sent to {command[1]}"      
+            message, code = self.start_game(command[1], int(command[2]))
+            if not code:
+                return message, code
+            else:
+                return self.start_game(command[1], int(command[2])), f"List of players has been sent to {command[1]}"      
         
         elif command[0] == 'de-register':
             print(f"A de-register request to de-register {command[1]} received from the address:", addr)
@@ -50,7 +54,7 @@ class Tracker:
     def register_player(self, params):
         player_name, ipv4, t_port, p_port = params
         if player_name not in self.players: # checks if there is a duplicate name
-            self.players[player_name] = [ipv4, t_port, p_port]
+            self.players[player_name] = [ipv4, t_port, p_port, False]
             print(f"Player {player_name} was successfully registered")
             return "SUCCESS: Player registered", None
         else:
@@ -66,7 +70,6 @@ class Tracker:
            
         return response, "Query response is sent to the player"
 
-
     def query_games(self): 
         response = f"{len(self.games)}\n"
         response+="\Current games:\n"
@@ -74,16 +77,35 @@ class Tracker:
             response += f"Game: {game} Dealer: {info[0]} Players: {info[1:]}"
         return response, "Query games response is sent to the player"
     
+    def is_registered(self, player):
+        return player in self.players.keys()
+
     def start_game(self, player, n):
+        if not self.is_registered(player):
+            message = "FAILURE: Player is not registered"
+            print(message) 
+            return message, None
+        
+        if len(self.keys()) < n+1:
+            message = f"FAILURE: Number of registered players is less than: {n+1}"
+            print(message)
+            return message, None
+        
+
+        self.players[player][3] = True # Change the state of the first dealder to in-game
+        list_of_players = f"{player} {self.players[player][0]} {self.players[player][2]}\n" # initiate the player as the first in the list
+        
         i = 0
-        list_of_players = f"{player} {self.players[player][0]} {self.players[player][2]}\n"
-        for p in self.players:
-            if p != player:
-                list_of_players += f"{p} {self.players[p][0]} {self.players[p][2]}\n"
+        for (k, v) in self.players.items():
+            if k != player and v[3] == False: # if the player is not the dealer and the player is available
+                v[3] = True # declare the player state as in-game
+                list_of_players += f"{k} {v[0]} {v[2]}\n"
                 i += 1
             if i == n:
                 break
-        return list_of_players
+        
+        print(list_of_players)
+        return list_of_players, True
 
     def deregister_player(self, player_name):
         if player_name in self.players:
