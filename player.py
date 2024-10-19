@@ -6,10 +6,10 @@ import random
 import time
 
 class Player:
+    standardDeck = {}
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
         """stores the information need as described in the specification"""
         self.name = None
-        self.in_game = False
         self.IPv4 = IPv4
         self.tracker_port = tracker_port
         
@@ -24,6 +24,7 @@ class Player:
 
         # Define stop_event for thread control
         self.stop_event = threading.Event()
+        self.in_game = threading.Event()
 
         self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
         self.peer_thread = threading.Thread(target=self.listen_to_peers)
@@ -34,7 +35,6 @@ class Player:
         self.game_id = None
         self.holes = 0
         self.current_hole = 0
-
     def setName(self, name):
         self.name = name
 
@@ -82,6 +82,7 @@ class Player:
                     peer_port = int(player_details[2])
                     self.send_to_peer(peer_ip, peer_port, f"Game started with players: {response}")
                     break
+
         # if "SUCCESS" in response:
         #     self.in_game = True
         #     self.game_id = response.split()[1]
@@ -106,8 +107,6 @@ class Player:
             try:
                 data, addr = self.pt_socket.recvfrom(1024)
                 message = data.decode('utf-8')
-                if message == "game":
-                    pass
                 print(f"Tracker response:\n{message}")
             except BlockingIOError:
                 pass
@@ -116,8 +115,18 @@ class Player:
         """Listen for messages from other peers."""
         while True:
             data, addr = self.pp_socket.recvfrom(1024)
-            message = data.decode('utf-8')
-            print(message)
+            message = data.decode('utf-8').split()
+            try:
+                match message[0]:
+                    case "invite":
+                        print("You got an invite to join a game by:", message[1])
+                        self.in_game.set()
+                    case "end":
+                        self.in_game.clear()
+                    case "state":
+                        pass # Here we need to handle the state
+            except:
+                pass
 
     def send_to_peer(self, ip, port, message):
         """Send a message to a peer via the peer-to-peer socket."""
@@ -188,7 +197,7 @@ class Player:
         self.holes = 0
         self.current_hole = 0
 
-    def main_page(self, command):
+    def handle_menu_input(self, command):
         splittedCmd = command.split()
         if splittedCmd[0] == "register":
             if len(splittedCmd) != 5:
@@ -248,7 +257,7 @@ class Player:
         else:
             print("Unknown command")
 
-    def game(self, command):
+    def handle_game_input(self, command):
         splittedCmd = command.split()
         if splittedCmd[0] == "play turn":
             self.play_turn()
@@ -261,11 +270,10 @@ class Player:
         while True:
             name = self.name if self.name != None else ""
             command = input(f"{name}> ")
-
-            if self.in_game:
-                self.game(command)
+            if self.in_game: # Change that to an event
+                self.handle_game_input(command)
             else:
-                self.main_page(command)
+                self.handle_menu_input(command)
     
     def start(self):    
         self.tracker_thread.start()  # Start listening to the tracker
