@@ -10,6 +10,7 @@ class Player:
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
         """stores the information need as described in the specification"""
         self.name = None
+        self.state = None
         self.IPv4 = IPv4
         self.tracker_port = tracker_port
         
@@ -35,6 +36,7 @@ class Player:
         self.game_id = None
         self.holes = 0
         self.current_hole = 0
+  
     def setName(self, name):
         self.name = name
 
@@ -107,7 +109,7 @@ class Player:
             try:
                 data, addr = self.pt_socket.recvfrom(1024)
                 message = data.decode('utf-8')
-                print(f"Tracker response:\n{message}")
+                self.handle_tracker(message)
             except BlockingIOError:
                 pass
 
@@ -115,18 +117,25 @@ class Player:
         """Listen for messages from other peers."""
         while True:
             data, addr = self.pp_socket.recvfrom(1024)
-            message = data.decode('utf-8').split()
+            message = data.decode('utf-8')
             try:
-                match message[0]:
-                    case "invite":
-                        print("You got an invite to join a game by:", message[1])
-                        self.in_game.set()
-                    case "end":
-                        self.in_game.clear()
-                    case "state":
-                        pass # Here we need to handle the state
+                self.handle_peers(message)
             except:
                 pass
+    
+    def handle_tracker(self, message):
+        pass # To be implemented
+
+    def handle_peers(self, message):
+        splittedMessage = message.split()                
+        match splittedMessage[0]:
+            case "invite":
+                print("You got an invite to join a game by:", splittedMessage[1])
+                self.in_game.set()
+            case "end": # end game
+                self.in_game.clear()
+            case "state": # game state
+                pass # Here we need to handle the state
 
     def send_to_peer(self, ip, port, message):
         """Send a message to a peer via the peer-to-peer socket."""
