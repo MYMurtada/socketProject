@@ -31,7 +31,7 @@ class Player:
         self.main_thread = threading.Thread(target=self.main)
 
         self.peers = {}
-        self.dealer = None
+        self.state = None
         self.hand = [None] * 6
         self.peer_sockets = {}
         self.game_id = None
@@ -62,6 +62,10 @@ class Player:
             
         return response.decode('utf-8')
 
+    def send_to_peer(self, ip, port, message):
+        """Send a message to a peer via the peer-to-peer socket."""
+        self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
+
     def register(self, name, IPv4, tracker_port, player_port):
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
         print("Register request is sent to the tracker")
@@ -80,14 +84,17 @@ class Player:
             return
         else:
             self.in_game.set()
-            self.dealer = True
+            self.state = "Dealer"
+            print("response")
             players_list = response.split('\n')
+            players_list.pop(-1)
             print("Game starting with players:")
-
+            print("Player list", players_list)
             for player_info in players_list[1:]:
-                player_details = player_info.split()    
-                self.peers[player_details[0]] = [player_details[1], player_details[2]] # peers[name] = [ipv4, port number]
-                self.send_to_peer(player_details[0], int(player_details[1]), f"invite {player}")
+                player_details = player_info.split(" ")
+                print(player_details)
+                self.peers[player_details[0]] = [player_details[1], int(player_details[2])] # peers[name] = [ipv4, port number]
+                self.send_to_peer(player_details[1], int(player_details[2]), f"invite {player}")
     
 
     def deregister(self, name):
@@ -133,7 +140,7 @@ class Player:
                 حدث عندك الحالة
         """
         splittedMessage = message.split()                
-
+        print(message, splittedMessage)
         if self.state == "Dealer":
             pass
         elif self.state == "Player":
@@ -148,12 +155,9 @@ class Player:
             match splittedMessage[0]:
                 case "invite":
                     print("You got an invite to join a game by:", splittedMessage[1])
+                    self.state = "Player"
                     self.in_game.set()
                 
-    def send_to_peer(self, ip, port, message):
-        """Send a message to a peer via the peer-to-peer socket."""
-        self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
-
     def set_up_game(self, game_info):
         """Sets up the game with the given player information."""
         players_info = game_info.split('\n')[1:]
