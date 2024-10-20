@@ -32,7 +32,8 @@ class Player:
 
         self.peers = {}
         self.dealer = None
-        self.hand = [None] * 6
+        self.discarded = None
+        self.hand = []
         self.peer_sockets = {}
         self.game_id = None
         self.holes = 0
@@ -141,8 +142,10 @@ class Player:
                 case "end": # end game
                     self.in_game.clear()
                 case "state": # message = "state, deck ومعلومات اللاعبين"
+                    self.current_hole = splittedMessage[1]
                     pass # Here we need to handle the state
                 case "turn": 
+                    print("It is your turn, choice one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
                     pass # Message containing what to do
         else: # None
             match splittedMessage[0]:
@@ -189,16 +192,35 @@ class Player:
                 hand_display.append(str(card) if card > 0 else '***')
         print('Your hand:', ' '.join(hand_display))
 
-    def play_turn(self):
+    def play_turn_from_stock(self):
         """Plays the player's turn."""
-        while self.in_game:
-            card = random.randint(1, 52)  # Simulate drawing a card
-            print(f"Drawn card: {card}")
-            # Example: replacing a card (more game logic would be implemented here)
-            replace_index = random.randint(0, 5)
-            self.hand[replace_index] = card
+        card = random.randint(1, 52)  # Simulate drawing a card
+        print(f"Drawn card: {card}\n")
+        replace_index = input("Choice the index to swap (1-6) or 'discard' to discard it: ")
+        if replace_index == 'discard':
+            self.discarded = card 
+        else:
             self.print_hand()
-            break  # For now, one iteration per turn
+            self.hand[replace_index] = card
+            self.discarded = random.randint(1, 52)
+        print("\n")
+        self.print_hand()
+        
+    def play_turn_from_discard(self):
+        """Plays the player's turn."""
+        card = self.discarded  
+        print(f"Drawn card: {card}\n")
+        replace_index = input("Choice the index to swap (1-6): ")
+        self.print_hand()
+        if self.hand[replace_index] == "***":
+            self.hand[replace_index] = card
+            self.discarded = random.randint(1, 52)
+        else:
+            self.discarded = self.hand[replace_index]
+            self.hand[replace_index] = card
+           
+        print("\n")
+        self.print_hand()
 
     def play_game(self):
         """Plays the entire game for the specified number of holes."""
@@ -278,10 +300,12 @@ class Player:
 
     def handle_game_input(self, command):
         splittedCmd = command.split()
-        if splittedCmd[0] == "play turn":
-            self.play_turn()
-        elif splittedCmd[0] == "end game":
-            self.end_game()
+        if splittedCmd[0] == "stock":
+            self.play_turn_from_stock()
+            
+        elif splittedCmd[0] == "discard":
+            self.play_turn_from_discard()
+            
         else:
             print("Unknown game command")
 
