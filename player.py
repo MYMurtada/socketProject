@@ -89,7 +89,8 @@ class Player:
         self.stop_peer.set()
         self.pp_socket.setblocking(True)
         response, addr = self.pp_socket.recvfrom(Player.recievingBytes)
-        self.handle_peers(response, addr)
+        message = response.decode('utf-8')
+        self.handle_peers(message, addr)
         self.pp_socket.setblocking(False)
         
         if not self.peer_thread.is_alive():
@@ -139,7 +140,7 @@ class Player:
             except:
                 pass
 
-    def start_game(self, player, n, holes):
+    def start_game(self, player, n, holes, extension=False):
         message = f"start game {player} {n}"
         response = self.send_to_tracker(message)
         if response.split(":")[0] == "FAILURE":
@@ -177,24 +178,53 @@ class Player:
                         try:
                             match command:
                                 case 'stock':
-                                    command2 = input(f"The card you got is: {stockCard}, you can either discard or swap it (enter swap row col)").split(" ")
+                                    command2 = input(f"The card you got is: {stockCard}, you can either discard or swap it (enter swap row col):\n").split(" ")
                                     if command2[0] == "discard":
                                         self.discard(self.deck["stock"].pop())
                                     elif command2[0] == "swap":
                                         self.swap(stockCard, int(command2[1]), int(command2[2]), "stock")
                                 case 'discard':
-                                    command2 = input(f"With which card do you want to swap? (enter row col)").split()
+                                    command2 = input(f"With which card do you want to swap? (enter row col):\n").split()
                                     self.swap(discardCard, int(command2[0]), int(command2[1]), "discard")
                             self.turn = False
                             self.updatePlayers()
+                            break
                         except:
-                            command = input("Incorrect Format! Please try again, do you want to draw from stock or discard?")
+                            command = input("Incorrect Format! Please try again, do you want to draw from stock or discard?\n")
 
                 else:
                     self.send_to_peer_rec(self.peers[p][0], self.peers[p][1], "turn " + Player.encodeDeck(self.deck))
                 time.sleep(0.1)
         
         self.announceWinner()
+        self.in_game.clear()
+        self.state = None
+    
+    def announceWinner(self):
+        minScore = 100
+        minPlayer = None
+        for player, cards in self.deck["players"].items():
+            score = 0
+            for i in range(len(cards)):
+                if cards[i][0] == "h":
+                    cards[i] = cards[i][1:]
+                
+            for i in range(3):
+                if cards[i] == cards[i+3]:
+                    pass
+                else:
+                    score += Player.standardDeck[cards[i]]
+                    score += Player.standardDeck[cards[i+3]]    
+            
+            if score < minScore:
+                minScore = score
+                minPlayer = player
+        
+        print("---------- The Game Has Ended ----------")
+        print("The Winner of the game is:", minPlayer, " with a score of:", minScore)
+
+        for peer, addr in self.peers.items():
+            self.send_to_peer(addr[0], addr[1], "winner " + minPlayer + " " + str(minScore))
 
     def updatePlayers(self):
         self.print_deck()
@@ -255,7 +285,7 @@ class Player:
     def print_deck(self): # game list is a list containing: Discard piles: K10, Stock, print all other player hands
         """Prints the player's hand."""
         print("New state of the game:")
-        print("Discard piles: %-3s Stock: ***" % (self.deck["discard"][0]))
+        print("Discard piles: %-3s Stock: ***" % (self.deck["discard"][-1]))
         deck = ""
         players = list(self.deck["players"].keys())
         deck += f"%11s" % players[0]
@@ -319,7 +349,8 @@ class Player:
         elif self.state == "Player":
             match splittedMessage[0]:
                 case "winner": # game ends
-                    print("The winner of the game is:", splittedMessage[1])
+                    print("\n\n---------- The Game Has Ended ----------")
+                    print("The Winner of the game is:", splittedMessage[1], " with a score of:", splittedMessage[2])
                     self.in_game.clear()
                     self.state = None
 
@@ -338,9 +369,6 @@ class Player:
                 self.state = "Player"
                 self.dealer = [addr[0], addr[1]]
                 self.in_game.set()
-
-    # def unfoldDeck(self, game):
-    #     pass
 
     def handle_menu_input(self, command):
         splittedCmd = command.split()
@@ -382,13 +410,16 @@ class Player:
             self.query_games()
 
         elif splittedCmd[0]+splittedCmd[1] == "startgame":
-            if len(splittedCmd) != 5:
+            if len(splittedCmd) < 4:
                 print("please use the command in the following manner: start game <player> <n> <holes>")
                 return
             try:
                 player_name = splittedCmd[2]
                 n = int(splittedCmd[3])
-                holes = int(splittedCmd[4])
+                if len(splittedCmd == 5):
+                    holes = int(splittedCmd[4])
+                else:
+                    holes = 9
             except ValueError:
                 print("Invalid command parameters")
                 return
@@ -409,24 +440,26 @@ class Player:
         
         stockCard = self.getCardFromStock()
         discardCard = self.getCardFromDiscarded()
-        match command:
-            case 'stock':
-                command2 = input(f"The card you got is: {stockCard}, you can either discard or swap it (enter swap row col): ").split(" ")
-                print(command2)
-                if command2[0] == "discard":
-                    self.discard(self.deck["stock"].pop())
+        while True:
+            try:
+                match command:
+                    case 'stock':
+                        command2 = input(f"The card you got is: {stockCard}, you can either discard or swap it (enter swap row col): ").split(" ")
+                        print(command2)
+                        if command2[0] == "discard":
+                            self.discard(self.deck["stock"].pop())
 
-                elif command2[0] == "swap":
-                    self.swap(stockCard, int(command2[1]), int(command2[2]), "stock")
-            case 'discard':
-                command2 = input(f"With which card do you want to swap? (enter row col): ").split()
-                self.swap(discardCard, int(command2[0]), int(command2[1]), "discard")
-        self.turn = False
-        """break
-            except Exception as e:
-                print(e)
-                command = input("Incorrect Format! Please try again, do you want to draw from stock or discard? ")
-        """
+                        elif command2[0] == "swap":
+                            self.swap(stockCard, int(command2[1]), int(command2[2]), "stock")
+                    case 'discard':
+                        command2 = input(f"With which card do you want to swap? (enter row col): ").split()
+                        self.swap(discardCard, int(command2[0]), int(command2[1]), "discard")
+
+                self.turn = False
+                break
+            except:
+                command = input("Invalid format, please try again!\n")
+
         self.send_to_peer(self.dealer[0], self.dealer[1], "update " + Player.encodeDeck(self.deck))
 
     def end_game(self):
