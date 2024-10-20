@@ -94,8 +94,24 @@ class Player:
                 player_details = player_info.split(" ")
                 print(player_details)
                 self.peers[player_details[0]] = [player_details[1], int(player_details[2])] # peers[name] = [ipv4, port number]
+            
                 self.send_to_peer(player_details[1], int(player_details[2]), f"invite {player}")
-    
+            
+            # self.players = {"Name": hand}
+            """
+
+            for player in self.players:
+                if player != self.name:
+                    send to player that it is your turn
+                    listen to the outcome
+                    update the deck
+                    send the updated deck to every other player
+                if player == self.name
+                    tell the user that it is your player
+                    take the inptu
+                    update the deck
+                    send the updated to others
+            """
 
     def deregister(self, name):
         message = f"de-register {name}"
@@ -134,7 +150,7 @@ class Player:
         """are you dealer:
             yes:
                 استقبل من اللاعبين الحالة للعبة
-            ارسل الحالة الجديدة لجميع اللاعبين
+                ارسل الحالة الجديدة لجميع اللاعبين
             No:
                 استقبل من الديلر
                 حدث عندك الحالة
@@ -145,14 +161,15 @@ class Player:
             pass
         elif self.state == "Player":
             match splittedMessage[0]:
-                case "end": # end game
+                case "Winner": # game ends
+                    print("The winner of the game is:", splittedMessage[1])
                     self.in_game.clear()
                 case "state": # message = "state, deck ومعلومات اللاعبين"
                     self.current_hole = splittedMessage[1]
                     pass # Here we need to handle the state
-                case "turn": 
+                case "turn":
                     print("It is your turn, choice one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
-                    pass # Message containing what to do
+
         else: # None
             match splittedMessage[0]:
                 case "invite":
@@ -185,7 +202,10 @@ class Player:
         for i in face_up_indices:
             self.hand[i] = abs(self.hand[i])  # Ensure positive value represents face-up
 
-    def print_hand(self):
+    def print_deck(self, game_state): # game list is a list containing: Discard piles: K10, Stock, print all other player hands
+        print('')
+
+
         """Prints the player's hand."""
         hand_display = []
         for card in self.hand:
