@@ -18,7 +18,8 @@ class Player:
                     '10C':10,'10D':10,'10H':10,'10S':10,
                     'JC':10,'JD':10,'JH':10,'JS':10,
                     'QC':10,'QD':10,'QH':10,'QS':10,
-                    'KC':0,'KD':0,'KH':0,'KS':0,}
+                    'KC':0,'KD':0,'KH':0,'KS':0}    
+    
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
         """stores the information need as described in the specification"""
         self.name = None
@@ -154,15 +155,32 @@ class Player:
                 player_details = player_info.split(" ")
                 print(player_details)
                 self.peers[player_details[0]] = [player_details[1], int(player_details[2])] # peers[name] = [ipv4, port number]
-                self.send_to_peer(player_details[1], int(player_details[2]), f"invite {player}")            
-                self.gameState = self.dealCards(n)
+                self.send_to_peer(player_details[1], int(player_details[2]), f"invite {player}")        
+            
+            players = list(self.peers.keys()) + [self.name]
+            self.deck = self.dealCards(players)
+            print(self.deck)
     
-    def dealCards(self):
+    def dealCards(self, players):
         cards = self.standardDeck.keys()
-        random.shuffle(cards)
+        shuffledSet = random.shuffle(list(cards))
+        deck = ""
+        index = 0
+        for i in range(51-len(players) * 6):
+            deck += f"{shuffledSet[index]} "
+            index += 1
+        deck += ";"
+        deck += f"{shuffledSet[index]}; "
+        index += 1
+        for player in players:
+            deck += f"{player} "
+            for i in range(6):
+                deck += f"{shuffledSet[index]} "
+                index += 1
+            deck += ";"
         
-        deck = []
-
+        deck[-1] = ""
+        return deck
     def handle_tracker(self, message):
         pass
 
