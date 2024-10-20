@@ -46,13 +46,14 @@ class Player:
         self.main_thread = threading.Thread(target=self.main)
 
         self.peers = {}
+        self.players = None
         self.dealer = None
-        self.role = None
         self.state = None
         self.hand = [None] * 6
         self.game_id = None
         self.holes = 0
         self.current_hole = 0
+        self.turn = False
   
     def setName(self, name):
         self.name = name
@@ -82,12 +83,13 @@ class Player:
         self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
 
     def send_to_peer_rec(self, ip, port, message):
-        """Send a message to a peer via the peer-to-peer socket."""
+        """Send a message to a peer via the peer-to-peer socket and wait until the peer responds."""
         self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
         
         self.stop_peer.set()
         self.pp_socket.setblocking(True)
-        response = self.pp_socket.recv(1024)[0]
+        response, addr = self.pp_socket.recv(1024)
+        self.handle_peers(response)
         self.pp_socket.setblocking(False)
         
         if not self.peer_thread.is_alive():
@@ -95,7 +97,7 @@ class Player:
             self.peer_thread.start()
 
         self.stop_peer.clear()
-        return response.decode('utf-8')
+        #return response.decode('utf-8')
 
     def register(self, name, IPv4, tracker_port, player_port):
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
@@ -143,83 +145,136 @@ class Player:
         if response.split(":")[0] == "FAILURE":
             print(response)
             return
-        else:
-            self.in_game.set()
-            self.state = "Dealer"
-            print("response")
-            players_list = response.split('\n')
-            players_list.pop(-1)
-            print("Game starting with players:")
-            print("Player list", players_list)
-            for player_info in players_list[1:]:
-                player_details = player_info.split(" ")
-                print(player_details)
-                self.peers[player_details[0]] = [player_details[1], int(player_details[2])] # peers[name] = [ipv4, port number]
-                self.send_to_peer(player_details[1], int(player_details[2]), f"invite {player}")        
-            
-            players = list(self.peers.keys()) + [self.name]
-            self.deck = self.dealCards(players)
-            print(self.deck)
-    
+
+        self.in_game.set()
+        self.state = "Dealer"
+        print("response")
+        players_list = response.split('\n')
+        players_list.pop(-1)
+        print("Game starting with players:")
+        print("Player list", players_list)
+        for player_info in players_list[1:]:
+            player_details = player_info.split(" ")
+            print(player_details)
+            self.peers[player_details[0]] = [player_details[1], int(player_details[2])] # peers[name] = [ipv4, port number]
+            self.send_to_peer(player_details[1], int(player_details[2]), f"invite {player}")        
+        
+        self.players = list(self.peers.keys()) + [self.name]
+        self.deck = Player.decodeDeck(self.dealCards(self.players))
+
+        self.updatePlayers()
+        time.sleep(0.1)
+        for i in range(holes):
+            for p in self.players:
+                if p == player:
+                    stockCard = self.getCardFromStock()
+                    discardCard = self.getCardFromDiscarded()
+                    command = input("It is your turn, choice one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
+                    while True:
+                        try:
+                            match command:
+                                case 'stock':
+                                    command2 = input(f"The card you got is: {stockCard}, you can either discard or swap it (enter swap row col)")
+                                    if command2 == "discard":
+                                        self.discard(stockCard)
+                                    elif command2.split()[0] == "swap":
+                                        self.swap(stockCard, command2.split()[1], command2.split()[2])
+                                case 'discard':
+                                    command2 = input(f"With which card do you want to swap? (enter row col)")
+                                    self.swap(discardCard, command2.split()[0], command2.split()[1])
+                            self.turn = False
+                        except:
+                            command = input("Incorrect Format! Please try again, do you want to draw from stock or discard?")
+                    self.updatePlayers()
+
+                else:
+                    self.send_to_peer_rec(self.peers[p][0], self.peers[p][1], "turn " + Player.encodeDeck(self.deck))
+                time.sleep(0.1)
+                
+
+    def updatePlayers(self):
+        self.print_deck()
+        for peer in self.peers.keys():
+            self.send_to_peer(self.peers[peer][0], self.peers[peer][1], "update " + Player.encodeDeck(self.deck))
+
+
     def dealCards(self, players):
-        cards = self.standardDeck.keys()
-        shuffledSet = random.shuffle(list(cards))
+        shuffledSet = list(Player.standardDeck.keys())
+        random.shuffle(shuffledSet)
         deck = ""
         index = 0
         for i in range(51-len(players) * 6):
             deck += f"{shuffledSet[index]} "
             index += 1
+        deck = deck[:-1]
         deck += ";"
-        deck += f"{shuffledSet[index]}; "
+        deck += f"{shuffledSet[index]};"
         index += 1
         for player in players:
             deck += f"{player} "
             for i in range(6):
-                deck += f"{shuffledSet[index]} "
+                deck += f"h{shuffledSet[index]} "
                 index += 1
+            deck = deck[:-1]
             deck += ";"
-        
-        deck[-1] = ""
-        return deck
-    def handle_tracker(self, message):
-        pass
+        return deck[:-1]
 
-    def handle_peers(self, message, addr):
-        splittedMessage = message.split()                
-        print(message, splittedMessage)
+    # Converting the deck from a string to a dictionary
+    def decodeDeck(deck):
+        splittedDeck = deck.split(";")
+        state = {}
+        state["stock"] = splittedDeck[0].split(" ")
+        state["discard"] = splittedDeck[1].split(" ")
+        state["players"] = {}
+        for p in splittedDeck[2:]:
+            playerInfo = p.split(" ")
+            state["players"][playerInfo[0]] = playerInfo[1:]
+        return state
 
-        if self.state == "Dealer":
-            match splittedMessage[0]:
-                case "state":
-                    pass
-                    # Update set state as the new state, and send the new state to other players
+    # Converting the deck from a dictionary to string
+    def encodeDeck(deck):
+        encodedDeck = ""
+        for card in deck["stock"]:
+            encodedDeck += f"{card} "
+        encodedDeck = encodedDeck[:-1] + ";"
+        for card in deck["discard"]:
+            encodedDeck += f"{card} "
+        encodedDeck = encodedDeck[:-1] + ";"
 
-        elif self.state == "Player":
-            match splittedMessage[0]:
-                case "winner": # game ends
-                    print("The winner of the game is:", splittedMessage[1])
-                    self.in_game.clear()
+        for player, l in deck["players"].items():
+            encodedDeck += f"{player} "
+            for item in l:
+                encodedDeck += f"{item} "
+            encodedDeck = encodedDeck[:-1] + ";"
+        encodedDeck = encodedDeck[:-1]
+        return encodedDeck
 
-                case "state": # message = "state, deck ومعلومات اللاعبين"
-                    self.print_deck(splittedMessage[1])
-                    pass # Here we need to handle the state
-
-                case "turn":
-                    self.role = "turn"
-                    print("It is your turn, choice one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
-
-        else: # None
-            match splittedMessage[0]:
-                case "invite":
-                    print("You got an invite to join a game by:", splittedMessage[1])
-                    self.state = "Player"
-                    self.dealer = [addr[0], addr[1]]
-                    self.in_game.set()
-                
-    def print_deck(self, game_state): # game list is a list containing: Discard piles: K10, Stock, print all other player hands
+    def print_deck(self): # game list is a list containing: Discard piles: K10, Stock, print all other player hands
         """Prints the player's hand."""
         print("New state of the game:")
-        print("Discard piles: %-3 Dec: ***")
+        print("Discard piles: %-3s Stock: ***" % (self.deck["discard"][0]))
+        deck = ""
+        players = list(self.deck["players"].keys())
+        deck += f"%11s" % players[0]
+        for player in players[1:]:
+            deck += f"%13s" % player
+        deck += "\n"
+        for player in players:
+            for i in range(3):
+                if self.deck["players"][player][i][0] == "h": # Hidden card
+                    deck += "*** "
+                else:
+                    deck += "%3s " % self.deck["players"][player][i]
+            deck += " "
+        deck += "\n"
+        for player in players:
+            for i in range(3):
+                if self.deck["players"][player][i+3][0] == "h": # Hidden card
+                    deck += "*** "
+                else:
+                    deck += "%3s " % self.deck["players"][player][i+3]
+            deck += " "
+        print(deck)
 
     def getCardFromStock(self):
         pass
@@ -232,6 +287,43 @@ class Player:
 
     def discard(self, card):
         pass
+
+    def handle_tracker(self, message):
+        pass
+
+    def handle_peers(self, message, addr):
+        splittedMessage = message.split(" ")                
+        print(splittedMessage[0])
+        if self.state == "Dealer":
+            match splittedMessage[0]:
+                case "update":
+                    self.deck = Player.decodeDeck(message[7:])
+                    self.updatePlayers()
+        
+        elif self.state == "Player":
+            match splittedMessage[0]:
+                case "winner": # game ends
+                    print("The winner of the game is:", splittedMessage[1])
+                    self.in_game.clear()
+
+                case "update": # message = "state, deck ومعلومات اللاعبين"
+                    print("Update entered")
+                         = Player.decodeDeck(message[7:])
+                    self.print_deck()
+
+                case "turn":
+                    self.turn = True
+                    print("It is your turn, choice one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
+
+        else: # None
+            if splittedMessage[0] == "invite":
+                print(f"----------- Welcome You Joined a Game With the Host {splittedMessage[1]} -----------")
+                self.state = "Player"
+                self.dealer = [addr[0], addr[1]]
+                self.in_game.set()
+
+    # def unfoldDeck(self, game):
+    #     pass
 
     def handle_menu_input(self, command):
         splittedCmd = command.split()
@@ -313,7 +405,7 @@ class Player:
                         command2 = input(f"With which card do you want to swap? (enter row col)")
                         self.swap(discardCard, command2.split()[0], command2.split()[1])
                 self.turn = False
-                self.send_to_peer(self.dealer[0], self.dealer[1], self.gameState)
+                self.send_to_peer(self.dealer[0], self.dealer[1], "update " + self.encodeDeck(self.deck))
             except:
                 command = input("Incorrect Format! Please try again, do you want to draw from stock or discard?")
 

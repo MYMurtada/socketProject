@@ -37,12 +37,12 @@ class Tracker:
                 return self.query_games()
         
         elif command[0]+command[1] == 'startgame':
-            print(f"A start game request from player {command[1]} to start with {command[2]} players received from the address:", addr)
-            message, code = self.start_game(command[1], int(command[2]))
+            print(f"A start game request from player {command[2]} to start with {command[3]} players received from the address:", addr)
+            message, code = self.start_game(command[2], int(command[3]))
             if not code:
                 return message, code
             else:
-                return self.start_game(command[1], int(command[2])), f"List of players has been sent to {command[1]}"      
+                return message, f"List of players has been sent to {command[2]}"      
         
         elif command[0] == 'de-register':
             print(f"A de-register request to de-register {command[1]} received from the address:", addr)
@@ -86,7 +86,7 @@ class Tracker:
             print(message) 
             return message, None
         
-        if len(self.keys()) < n+1:
+        if len(self.players.keys()) < n+1:
             message = f"FAILURE: Number of registered players is less than: {n+1}"
             print(message)
             return message, None
