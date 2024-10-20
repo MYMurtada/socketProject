@@ -10,7 +10,6 @@ class Player:
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
         """stores the information need as described in the specification"""
         self.name = None
-        self.state = None
         self.IPv4 = IPv4
         self.tracker_port = tracker_port
         
@@ -31,6 +30,8 @@ class Player:
         self.peer_thread = threading.Thread(target=self.listen_to_peers)
         self.main_thread = threading.Thread(target=self.main)
 
+        self.peers = {}
+        self.dealer = None
         self.hand = [None] * 6
         self.peer_sockets = {}
         self.game_id = None
@@ -74,25 +75,20 @@ class Player:
     def start_game(self, player, n, holes):
         message = f"start game {player} {n}"
         response = self.send_to_tracker(message)
-        if response:
+        if response.split(":")[0] == "FAILURE":
+            print(response)
+            return
+        else:
+            self.in_game.set()
+            self.dealer = True
             players_list = response.split('\n')
             print("Game starting with players:")
 
-            for player_info in players_list:
+            for player_info in players_list[1:]:
                 player_details = player_info.split()    
-                if player_details[0] == player:
-                    peer_ip = player_details[1]
-                    peer_port = int(player_details[2])
-                    self.send_to_peer(peer_ip, peer_port, f"Game started with players: {response}")
-                    break
-
-        # if "SUCCESS" in response:
-        #     self.in_game = True
-        #     self.game_id = response.split()[1]
-        #     self.holes = holes
-        #     print(f"Game {self.game_id} started with {n} players for {holes} holes.")
-        #     self.set_up_game(response)
-        #     self.play_game()
+                self.peers[player_details[0]] = [player_details[1], player_details[2]] # peers[name] = [ipv4, port number]
+                self.send_to_peer(player_details[0], int(player_details[1]), f"invite {player}")
+    
 
     def deregister(self, name):
         message = f"de-register {name}"
@@ -154,9 +150,6 @@ class Player:
                     print("You got an invite to join a game by:", splittedMessage[1])
                     self.in_game.set()
                 
-
-
-    
     def send_to_peer(self, ip, port, message):
         """Send a message to a peer via the peer-to-peer socket."""
         self.pp_socket.sendto(message.encode('utf-8'), (ip, port))
@@ -221,10 +214,7 @@ class Player:
         message = f"end {self.game_id} {self.name}"
         print(f"Ending game {self.game_id}")
         self.send_to_tracker(message)
-        self.in_game = False
-        self.game_id = None
-        self.holes = 0
-        self.current_hole = 0
+        self.in_game.clear()
 
     def handle_menu_input(self, command):
         splittedCmd = command.split()
