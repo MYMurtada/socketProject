@@ -113,6 +113,8 @@ class Tracker:
         return list_of_players, True
 
     def end_game(self, gameID):
+        print(self.games[gameID])
+        print(self.players)
         for player in self.games[gameID]:
             self.players[player][3] = False # Set players to be free to join
         return "Game ended succesfully", None
