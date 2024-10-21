@@ -27,6 +27,10 @@ class Tracker:
             print(f"A registration request to register {command[1]} was received from:", addr)
             return self.register_player(command[1:])
         
+        elif command[0] == 'end':
+            print("An end game request received from:", command[2])
+            return self.end_game(int(command[1]))
+        
         elif command[0] == 'query':
             if command[1] == 'players':
                 print("A query players request received from the address:", addr)
@@ -93,7 +97,8 @@ class Tracker:
         
 
         self.players[player][3] = True # Change the state of the first dealder to in-game
-        list_of_players = f"{player} {self.players[player][0]} {self.players[player][2]}\n" # initiate the player as the first in the list
+        list_of_players = f"{len(self.games)}\n"
+        list_of_players += f"{player} {self.players[player][0]} {self.players[player][2]}\n" # initiate the player as the first in the list
         
         i = 0
         for (k, v) in self.players.items():
@@ -103,10 +108,15 @@ class Tracker:
                 i += 1
             if i == n:
                 break
-        
-        print(list_of_players)
+
+        self.games[len(self.games)] = list_of_players        
         return list_of_players, True
 
+    def end_game(self, gameID):
+        for player in self.games[gameID]:
+            self.players[player][3] = False # Set players to be free to join
+        return "Game ended succesfully", None
+    
     def deregister_player(self, player_name):
         if player_name in self.players:
             del self.players[player_name]
