@@ -20,7 +20,9 @@ class Player:
                     'JC':10,'JD':10,'JH':10,'JS':10,
                     'QC':10,'QD':10,'QH':10,'QS':10,
                     'KC':0,'KD':0,'KH':0,'KS':0}    
+    
     recievingBytes = 4096
+
     def __init__(self, IPv4, tracker_port, pt_port, pp_port):
         """stores the information need as described in the specification"""
         self.name = None
@@ -187,9 +189,12 @@ class Player:
             self.updatePlayers() # send the new state to all players and print it
 
             time.sleep(0.1)
-            while not self.isHoleDone():
+            done = False
+            while True:
                 for p in self.players:
-
+                    if self.isHoleDone():
+                        done = True
+                        break
                     for _ in self.players:
                         if _ not in [p, player]:
                             self.send_to_peer(self.peers[_][0], self.peers[_][1], f"pTurn {p}")
@@ -198,9 +203,9 @@ class Player:
                         stockCard = self.getCardFromStock()
                         discardCard = self.getCardFromDiscarded()
                         if self.stealing:
-                            command = input("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n'steal' to steal from others")
+                            command = input("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n'steal' to steal from others\n> ")
                         else:
-                            command = input("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
+                            command = input("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n> ")
                         while True:
                             try:
                                 match command:
@@ -235,7 +240,12 @@ class Player:
                         print(f"-------------- {p} turn --------------")
                         self.send_to_peer_rec(self.peers[p][0], self.peers[p][1], "turn " + Player.encodeDeck(self.deck))
                     time.sleep(0.1)
+                
+                if done:
+                    break
+                
                 time.sleep(0.1)
+
             self.updateScores()
             time.sleep(3)
             
@@ -459,9 +469,9 @@ class Player:
                 case "turn":
                     self.turn = True
                     if self.stealing:
-                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n'steal' to steal from others\n")
+                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n'steal' to steal from others\n> ")
                     else:
-                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
+                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n> ")
 
                 case "pTurn":
                     print(f"-------------- {splittedMessage[1]} turn --------------")
