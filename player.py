@@ -550,6 +550,8 @@ class Player:
 
         elif splittedCmd[0] == "de-register":
             if self.deregister(splittedCmd[1]) and self.name == splittedCmd[1]:
+                self.stop_peer.set()
+                self.stop_tracker.set()
                 sys.exit()
 
         elif splittedCmd[0] == "end":
