@@ -29,12 +29,12 @@ class Player:
         
         self.pt_port = pt_port
         self.pt_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.pt_socket.bind((IPv4, pt_port))
+        # self.pt_socket.bind((IPv4, pt_port))
         self.pt_socket.setblocking(False)
         
         self.pp_port = pp_port
         self.pp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.pp_socket.bind((IPv4, pp_port))
+        # self.pp_socket.bind((IPv4, pp_port))
         self.pp_socket.setblocking(False)
 
         # Define stop events for thread control
@@ -105,6 +105,8 @@ class Player:
 
     def register(self, name, IPv4, tracker_port, player_port):
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
+        self.pt_socket.bind((IPv4, tracker_port))
+        self.pp_socket.bind((IPv4, player_port))
         print("Register request is sent to the tracker")
         return self.send_to_tracker(message) == "SUCCESS: Player registered"
 
