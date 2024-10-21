@@ -1,0 +1,289 @@
+commit cd6a2904ff293c8b6e2538fe408fd8a698f54181
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 22:23:30 2024 -0700
+
+    beta version
+
+commit fa5b8ca219c5d988cadf9662dfc4d017d604775d
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 22:04:12 2024 -0700
+
+    fixing when to stop in player
+
+commit 1c0a449c46669da81dc3d1e6424d9b6a857a8385
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 21:46:35 2024 -0700
+
+    fixing ip errors
+
+commit 1c5527a69748155d34de3c6e284e04ea340884b2
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 21:36:42 2024 -0700
+
+    fixing port issues
+
+commit 625d42ffa718e37c743557c0c2a031560a9ab27f
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 21:17:14 2024 -0700
+
+    fixing issues
+
+commit 251ee899a43cbe64266ea551e720b56b5fd5ca1f
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 19:49:18 2024 -0700
+
+    fixing steal
+
+commit e93a6369d3a416b2241ad55313e00764c8b3c6c6
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 19:24:21 2024 -0700
+
+    beta version
+
+commit e232cdf26c06cbf498728f71dd059c25d9a0b407
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 17:23:42 2024 -0700
+
+    finalizing game
+
+commit 1237ec388456b03852a81e8b9b0917b23e9e49c2
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 15:09:45 2024 -0700
+
+    last update
+
+commit 76617cf265bd348814eb616185c871568adb1b76
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 13:06:08 2024 -0700
+
+    swap discard and start game
+
+commit a53121577d19723e96e35c912902f75511ee2084
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Oct 20 00:26:04 2024 -0700
+
+    Formatting messages between peers, and finished start game
+
+commit 9f0c3c307c9fe654d818f059a1fb598d1282b4ca
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 21:22:35 2024 -0700
+
+    update deal cards
+
+commit 930711bbf4d3a333ff2462b28e17c6895f3f655e
+Merge: 3ac3d09 8c899f3
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 20:59:58 2024 -0700
+
+    Merge branch 'main' of https://github.com/MYMurtada/socketProject
+
+commit 3ac3d09e87f57abfbb72bdb5b2b2fe8705173e69
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 20:59:31 2024 -0700
+
+    refactoring player
+
+commit 8c899f39221f4ad0d6598136d5c74efe45729b41
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Sat Oct 19 18:44:12 2024 -0700
+
+    adding the cards
+
+commit 233ea6a383bc6302005e0abfb4fdbc99c06848f1
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 18:35:21 2024 -0700
+
+    u
+
+commit 0a25587a952513fe5b30a6b3f31bc758eec3d855
+Merge: 01401f7 6382968
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 18:07:48 2024 -0700
+
+    fixed handling peers
+
+commit 01401f7650fe54db5982ae6627ca4f43ab0d837d
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 17:58:35 2024 -0700
+
+    fixed issues in handling peers
+
+commit 6382968b1ffe4eebfff209a7a5e754177a92d3d5
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Sat Oct 19 17:57:06 2024 -0700
+
+    fixing the game logic
+
+commit 77eb0024ca7ca912bbccfe23e7b711bbccd20202
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 17:08:03 2024 -0700
+
+    implemented start game in player
+
+commit 0bc1d52713d300afa02ee74e10c0aaabacb95a65
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 16:51:32 2024 -0700
+
+    updated handle peers
+
+commit 448c7689cbc56275bcc3359e266688da50ad56ed
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 16:25:51 2024 -0700
+
+    completed start game in tracker
+
+commit ca42fd27f1afc56d2e32d6cd7b1568057446302b
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 12:47:24 2024 -0700
+
+    cleaning and refining player
+
+commit 05d9a02c619b1b94f9aa26c97804bc2e9feff1ee
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Oct 19 12:34:42 2024 -0700
+
+    handling start game in player
+
+commit 73ed6f80ad5184bcf70fcde5388a19eecaa6b569
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Fri Oct 18 22:11:54 2024 -0700
+
+    adding the game logic and starting game notifications
+
+commit faca5f1f8a5a52277f1414538310d3e59e15dd04
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Fri Oct 18 01:04:38 2024 -0700
+
+    adding the start game code
+
+commit 80550e85e109add82f28134dab849f3e0b7b12e8
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Thu Oct 17 23:49:25 2024 -0700
+
+    adding the start game in the main menu
+
+commit b667fdf9cb7f3dbbb2644bff3854525dc4dfc212
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Thu Oct 17 20:41:03 2024 -0700
+
+    fixed multithreading problems
+
+commit cace78a6e7bcb50e0404139c9ccdbd7da7819046
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Thu Oct 17 19:39:19 2024 -0700
+
+    fixing threading issues
+
+commit b9c4ecada12e6d70993a96b5451a8e317f626e73
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Thu Oct 17 17:06:32 2024 -0700
+
+    building the main thread
+
+commit 0ed09df1373f22ecc4a1cec1524b9d99ad45a1dc
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Wed Oct 16 23:02:37 2024 -0700
+
+    outlined multi-threading in player file
+
+commit e0774b6279e421b4bbf45b13a49a9a5b135c8055
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 22:50:15 2024 -0700
+
+    comments revised
+
+commit af5f1a0cd904b436852bc0a2344b72b8009095f5
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 22:30:37 2024 -0700
+
+    Final Version
+
+commit 4fccb062bda4c4fdf30dfa2fd3ec6aba0df06ed9
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 20:01:30 2024 -0700
+
+    added trace messages
+
+commit ddd797365420d36d665dd6e5d1f581d48cc7acc9
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 18:48:38 2024 -0700
+
+    added comments
+
+commit ad589a9205cbd32cd348bf6f4569849328d94960
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 18:29:58 2024 -0700
+
+    fixing specification issues
+
+commit a31633b4e763188cdd56afff000a8d7f72932362
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Sun Sep 29 18:15:39 2024 -0700
+
+    some minor changes in the tracker
+
+commit 1b9dadb18048e30ada54e4f677e1be1529fdc998
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 16:02:58 2024 -0700
+
+    added statements to help the user
+
+commit 08578755feede510377e1394cea9c1ab998d91c0
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sun Sep 29 15:58:11 2024 -0700
+
+    Fixed de-register, Fixed IP address issues
+
+commit 93879934b6638c98e44256e7fac35dd032e727f5
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Sep 28 18:53:52 2024 -0700
+
+    transforming the functions to methods, and fixing tracker issues
+
+commit 08fa097f13bf3883712a98c164bb4bfe4cbefc19
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Sep 28 03:58:41 2024 -0700
+
+    getting tracker started
+
+commit 227901fe59037a9e23adca08b887671ea6ba1359
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Sat Sep 28 03:53:25 2024 -0700
+
+    player basic functionalities
+
+commit de90cb0d3eec840797bf8297f70533324ee0bf92
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Fri Sep 27 22:39:55 2024 -0700
+
+    Creating the needed files
+
+commit 9b8c80aee71e8af84454fc4af95ba713d9489bb6
+Author: Ahmad Algadhi <ahmad.khalid.algadhi@gmail.com>
+Date:   Fri Sep 27 20:40:43 2024 -0700
+
+    test
+
+commit ab918e8e1ffb8476fdd7f8e6469948e38291465a
+Author: Mohammad Murtada <118128637+MYMurtada@users.noreply.github.com>
+Date:   Fri Sep 27 20:34:03 2024 -0700
+
+    Add files via upload
+
+commit e8d16ac063c42d5b552ee64ca5077d1b09eb62d7
+Author: Mohammad Murtada <118128637+MYMurtada@users.noreply.github.com>
+Date:   Fri Sep 27 20:33:21 2024 -0700
+
+    Update README.md
+
+commit 196cfb034f6aa924f59c3fe8117c1ba08a510fac
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Fri Sep 27 20:32:18 2024 -0700
+
+    first commit
+
+commit d86ae1860e4e47169574662e34a1499ad3329a1c
+Author: MYMurtada <mohymurtada@gmail.com>
+Date:   Fri Sep 27 20:31:59 2024 -0700
+
+    first commit

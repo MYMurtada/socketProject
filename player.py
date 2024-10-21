@@ -32,7 +32,6 @@ class Player:
         self.pt_port = pt_port
         self.pt_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # self.pt_socket.bind((IPv4, pt_port))
-        self.pt_socket.setblocking(False)
         
         self.pp_port = pp_port
         self.pp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -44,7 +43,6 @@ class Player:
         self.stop_peer = threading.Event()
         self.in_game = threading.Event()
 
-        self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
         self.peer_thread = threading.Thread(target=self.listen_to_peers)
         self.main_thread = threading.Thread(target=self.main)
 
@@ -68,20 +66,8 @@ class Player:
         self.pt_socket.sendto(message.encode('utf-8'), (self.IPv4, self.tracker_port))
         
         # Signal the tracker thread to stop gracefully
-        self.stop_tracker.set()
-        self.pt_socket.setblocking(True)
         response = self.pt_socket.recvfrom(1024)[0]
         print(f"Tracker response:\n{response.decode('utf-8')}")
-        self.pt_socket.setblocking(False)
-
-        # Clear stop_tracker to allow restarting the thread if needed
-        self.stop_tracker.clear()
-        
-        # Restart the thread if it's not alive
-        if not self.tracker_thread.is_alive():
-            self.tracker_thread = threading.Thread(target=self.listen_to_tracker)
-            self.tracker_thread.start()
-            
         return response.decode('utf-8')
 
     def send_to_peer(self, ip, port, message):
@@ -111,7 +97,7 @@ class Player:
         self.pp_socket.bind((IPv4, player_port))
         
         self.peer_thread.start()  # Start listening to peers
-        self.tracker_thread.start()  # Start the main menu
+        # self.tracker_thread.start()  # Start the liste to tracker thread (not used)
 
         print("Register request is sent to the tracker")
         return self.send_to_tracker(message) == "SUCCESS: Player registered"
@@ -160,6 +146,9 @@ class Player:
         allowStealing = input("Do you want to allow for stealing? (Yes or No): ")
         if allowStealing == "Yes":
             self.stealing = True
+        else:
+            self.stealing = False
+        
         self.in_game.set()
         self.state = "Dealer"
         players_list = response.split('\n')
@@ -298,7 +287,7 @@ class Player:
     def updatePlayers(self, endTurn = False):
         os.system('cls')
         if endTurn:
-            print("------The end of the current hole------")
+            print("\n\n------The end of the current hole------")
             self.print_deck()
             for peer in self.peers.keys():
                 self.send_to_peer(self.peers[peer][0], self.peers[peer][1], "endHole " + Player.encodeDeck(self.deck))
@@ -368,7 +357,7 @@ class Player:
 
     def print_deck(self): # game list is a list containing: Discard piles: K10, Stock, print all other player hands
         """Prints the player's hand."""
-        print("The updated deck is")
+        print("\n\nThe updated deck is")
         print("Discard piles: %-3s Stock: ***" % (self.deck["discard"][-1]))
         deck = ""
         players = list(self.deck["players"].keys())
@@ -452,6 +441,7 @@ class Player:
                     os.system('cls')
                     print("\n\n---------- The Game Has Ended ----------")
                     print("The Winner of the game is:", splittedMessage[1], " with a score of:", splittedMessage[2])
+                    print(f"Returned to main menu\n{self.name}>")
                     self.in_game.clear()
                     self.state = None
                     self.stealing = False
@@ -541,6 +531,9 @@ class Player:
                 n = int(splittedCmd[3])
                 if len(splittedCmd) == 5:
                     holes = int(splittedCmd[4])
+                    if holes not in range(1, 10):
+                        print("The number of holes should be in range: 1-9")
+                        return
                 else:
                     holes = 9
             except ValueError:
@@ -615,7 +608,6 @@ class Player:
                 self.handle_menu_input(command)
     
     def start(self):    
-        # self.tracker_thread.start()  # Start listening to the tracker
         # self.peer_thread.start()  # Start listening to peers
         self.main_thread.start()  # Start the main menu
 

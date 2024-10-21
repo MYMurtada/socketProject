@@ -7,7 +7,7 @@ class Tracker:
         self.port = port # saves the port of the tracker
         self.players = {} # a dictionary containing player names as keys, and their information as values
         self.games = {} # a dictionary containing all the game IDs as keys, player information as the values (dealer is the first in the list)
-
+        self.game_id = 0
     def start(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server.bind((self.IPv4, self.port)) # binding the socket to the given IPv4 and port
@@ -97,7 +97,7 @@ class Tracker:
         
 
         self.players[player][3] = True # Change the state of the first dealder to in-game
-        list_of_players = f"{len(self.games)}\n"
+        list_of_players = f"{self.game_id}\n"
         list_of_players += f"{player} {self.players[player][0]} {self.players[player][2]}\n" # initiate the player as the first in the list
         
         i = 0
@@ -109,14 +109,18 @@ class Tracker:
             if i == n:
                 break
 
-        self.games[len(self.games)] = self.players.keys()        
+        self.games[self.game_id] = list(self.players.keys())
+        self.game_id += 1
         return list_of_players, True
 
     def end_game(self, gameID):
         print(self.games[gameID])
         print(self.players)
-        for player in self.games[gameID].keys():
+        for player in self.games[gameID]:
             self.players[player][3] = False # Set players to be free to join
+        
+        del self.games[gameID]
+        
         return "Game ended succesfully", None
     
     def deregister_player(self, player_name):
