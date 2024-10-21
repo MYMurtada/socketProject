@@ -184,6 +184,11 @@ class Player:
             time.sleep(0.1)
             while not self.isHoleDone():
                 for p in self.players:
+
+                    for _ in self.players:
+                        if _ not in [p, player]:
+                            self.send_to_peer(self.peers[_][0], self.peers[_][1], f"pTurn {p}")
+
                     if p == player:
                         stockCard = self.getCardFromStock()
                         discardCard = self.getCardFromDiscarded()
@@ -212,9 +217,6 @@ class Player:
 
                     else:
                         print(f"-------------- {p} turn --------------")
-                        for _ in self.players:
-                            if _ not in [p, player]:
-                                self.send_to_peer(self.peers[_][0], self.peers[_][1], f"pTurn {p}")
                         self.send_to_peer_rec(self.peers[p][0], self.peers[p][1], "turn " + Player.encodeDeck(self.deck))
                     time.sleep(0.1)
                 time.sleep(0.1)
@@ -391,9 +393,9 @@ class Player:
             print("You Can only swap with face down card!")
             return False
         
-        row1, col1, = card1[0], card1[1]
+        row1, col1, = int(card1[0]), int(card1[1])
         index1 = (col1-1) + ((row1)//2 * 3) # maps between row-col to 1D array
-        row2, col2, = card2[0], card2[1]
+        row2, col2, = int(card2[0]), int(card2[1])
         index2 = (col2-1) + ((row2)//2 * 3) # maps between row-col to 1D array
 
         temp = self.deck["players"][player][index1]
@@ -440,10 +442,10 @@ class Player:
                 case "turn":
                     self.turn = True
                     if self.steal:
-                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n'steal' to steal from others")
+                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n'steal' to steal from others\n")
                     else:
-                        print("It is your turn, choice one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
-                
+                        print("It is your turn, choose one of the options!\n'stock' to draw a card from the stock\n'discard' to draw a card from the discarded cards\n")
+
                 case "pTurn":
                     print(f"-------------- {splittedMessage[1]} turn --------------")
 
@@ -459,9 +461,10 @@ class Player:
                 os.system("cls")
                 print(f"----------- Welcome You Joined a Game With the Host {splittedMessage[1]} (Stealing Allowed) -----------")
                 self.state = "Player"
-                self.stealing = True
+                self.steal = True
                 self.dealer = [addr[0], addr[1]]
                 self.in_game.set()
+    
     def handle_menu_input(self, command):
         splittedCmd = command.split()
         if splittedCmd[0] == "register":
@@ -554,8 +557,8 @@ class Player:
                             print("stealing is not allowed")
                             continue
                         command2 = input("From which player do you want to steal: ")
-                        command3 = input(f"Choose which card you want from {command2}: (Row Col)")
-                        command4 = input(f"Choose the card you want to switch from you deck: (Row Col)")
+                        command3 = input(f"Choose which card you want from {command2}: (Row Col) ")
+                        command4 = input(f"Choose the card you want to switch from you deck: (Row Col) ")
                         if not self.steal(command2, command3, command4):
                             continue
                 self.turn = False
