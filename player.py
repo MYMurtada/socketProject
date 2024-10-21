@@ -107,6 +107,10 @@ class Player:
         message = f"register {name} {IPv4} {tracker_port} {player_port}"
         self.pt_socket.bind((IPv4, tracker_port))
         self.pp_socket.bind((IPv4, player_port))
+        
+        self.peer_thread.start()  # Start listening to peers
+        self.tracker_thread.start()  # Start the main menu
+
         print("Register request is sent to the tracker")
         return self.send_to_tracker(message) == "SUCCESS: Player registered"
 
@@ -598,8 +602,8 @@ class Player:
                 self.handle_menu_input(command)
     
     def start(self):    
-        self.tracker_thread.start()  # Start listening to the tracker
-        self.peer_thread.start()  # Start listening to peers
+        # self.tracker_thread.start()  # Start listening to the tracker
+        # self.peer_thread.start()  # Start listening to peers
         self.main_thread.start()  # Start the main menu
 
 if __name__ == "__main__":
