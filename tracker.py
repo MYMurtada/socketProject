@@ -109,13 +109,13 @@ class Tracker:
             if i == n:
                 break
 
-        self.games[len(self.games)] = list_of_players        
+        self.games[len(self.games)] = self.players.keys()        
         return list_of_players, True
 
     def end_game(self, gameID):
         print(self.games[gameID])
         print(self.players)
-        for player in self.games[gameID]:
+        for player in self.games[gameID].keys():
             self.players[player][3] = False # Set players to be free to join
         return "Game ended succesfully", None
     

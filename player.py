@@ -247,9 +247,10 @@ class Player:
                 time.sleep(0.1)
 
             self.updateScores()
-            time.sleep(3)
-            
+            time.sleep(1)
+
         self.announceWinner()
+        print("The game id is:", self.game_id, "you can end by: end <game id> <dealer>")
         self.in_game.clear()
         self.state = None
         self.scores = {}
