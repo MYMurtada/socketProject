@@ -1,10 +1,10 @@
 import socket
 import threading
 import sys
-import cfunctions
 import random
 import time
-import os
+import cfunctions
+from os import system
 
 class Player:
     standardDeck = {'AC':1,'AD':1,'AH':1,'AS':1,
@@ -218,7 +218,7 @@ class Player:
                                             continue
 
                                 self.turn = False
-                                os.system('cls')
+                                system('cls')
                                 self.updatePlayers()
                                 break
                             except Exception as e:
@@ -270,7 +270,7 @@ class Player:
         self.updatePlayers(True)
 
     def announceWinner(self):
-        os.system('cls')
+        system('cls')
         print("---------- The Game Has Ended ----------")
         minPlayer = None
         minScore = 10000
@@ -285,7 +285,7 @@ class Player:
             self.send_to_peer(addr[0], addr[1], "winner " + minPlayer + " " + str(minScore))
 
     def updatePlayers(self, endTurn = False):
-        os.system('cls')
+        system('cls')
         if endTurn:
             print("\n\n------The end of the current hole------")
             self.print_deck()
@@ -438,7 +438,7 @@ class Player:
         elif self.state == "Player":
             match splittedMessage[0]:
                 case "winner": # game ends
-                    os.system('cls')
+                    system('cls')
                     print("\n\n---------- The Game Has Ended ----------")
                     print("The Winner of the game is:", splittedMessage[1], " with a score of:", splittedMessage[2])
                     print(f"Returned to main menu\n{self.name}>")
@@ -447,12 +447,12 @@ class Player:
                     self.stealing = False
 
                 case "update": # message = "state, deck ومعلومات اللاعبين"
-                    os.system('cls')
+                    system('cls')
                     self.deck = Player.decodeDeck(message[7:])
                     self.print_deck()
 
                 case "endHole":
-                    os.system("cls")
+                    system("cls")
                     print("------ The hole has ended -------")
                     self.deck = Player.decodeDeck(message[7:])
                     self.print_deck()
@@ -469,14 +469,14 @@ class Player:
 
         else: # None
             if splittedMessage[0] == "invite":
-                os.system("cls")
+                system("cls")
                 print(f"----------- Welcome You Joined a Game With the Host {splittedMessage[1]} -----------")
                 self.state = "Player"
                 self.dealer = [addr[0], addr[1]]
                 self.in_game.set()
             
             elif splittedMessage[0] == "invite_steal":
-                os.system("cls")
+                system("cls")
                 print(f"----------- Welcome You Joined a Game With the Host {splittedMessage[1]} (Stealing Allowed) -----------")
                 self.state = "Player"
                 self.stealing = True
@@ -612,6 +612,7 @@ class Player:
         self.main_thread.start()  # Start the main menu
 
 if __name__ == "__main__":
+    system("cls")
     pInformation = input("Enter the following information: <Tracker IPv4> <Tracker port number> <Peer-Tracker port number> <Peer-Peer port number>: \n").split()
     player = Player(pInformation[0], int(pInformation[1]), int(pInformation[2]), int(pInformation[3]))
     player.start()

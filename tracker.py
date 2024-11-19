@@ -1,4 +1,5 @@
 import socket
+from os import system
 import cfunctions
 
 class Tracker:
@@ -133,6 +134,7 @@ class Tracker:
             return "FAILURE: Player not registered", None
 
 if __name__ == "__main__":
+    system("cls")
     IPv4 = input("Enter the IPv4: ")
     portNumber = cfunctions.validPortNumber()
     tracker = Tracker(IPv4, portNumber)
